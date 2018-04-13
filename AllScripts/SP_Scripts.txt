@@ -1,0 +1,27 @@
+DROP PROCEDURE `attendedEvents`;
+CREATE DEFINER=`root`@`localhost` PROCEDURE `attendedEvents`(IN `studentId` INT) NOT DETERMINISTIC CONTAINS SQL SQL SECURITY DEFINER BEGIN
+SELECT eventId,eventName from eventstable where 0 <>  (SELECT COUNT(eventid) from eventattendence where studentid=studentId and eventstable.eventID=eventid) and endDate<CURRENT_DATE();
+END
+
+
+DROP PROCEDURE `studentHome`;
+CREATE DEFINER=`root`@`localhost` PROCEDURE `studentHome`(IN `studentId` INT) NOT DETERMINISTIC CONTAINS SQL SQL SECURITY DEFINER BEGIN 
+select e.eventName,e.eventID,(CASE WHEN (SELECT 1 FROM eventattendence WHERE eventID=e.eventID and studentID=studentId) THEN 1 ELSE 0 END) AS sp from eventstable e WHERE e.endDate>CURRENT_DATE(); 
+END
+
+
+DROP PROCEDURE `studentInfo`;
+CREATE DEFINER=`root`@`localhost` PROCEDURE `studentInfo`(IN `studentId` INT) NOT DETERMINISTIC CONTAINS SQL SQL SECURITY DEFINER BEGIN
+select c.courseName,d.deptName,s.advisorID
+from person p 
+left JOIN student s on s.studentID=p.id
+left JOIN courses c on c.courseID=s.majorID 
+left JOIN department d ON d.deptID=c.deptID
+where p.id=studentId;
+END
+
+
+DROP PROCEDURE `StudentParticipation`;
+CREATE DEFINER=`root`@`localhost` PROCEDURE `StudentParticipation`() NOT DETERMINISTIC CONTAINS SQL SQL SECURITY DEFINER BEGIN 
+SELECT e.eventName,e.eventID,count(ea.studentID) as studentCount FROM eventstable e LEFT JOIN eventattendence ea ON e.eventID=ea.eventID where endDate<CURRENT_DATE() GROUP by e.eventID;
+END
